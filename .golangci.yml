@@ -1,0 +1,39 @@
+# golangci-lint の設定。https://golangci-lint.run/usage/configuration/
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - misspell
+    - staticcheck
+    - unused
+    - whitespace
+    - exhaustive
+  settings:
+    exhaustive:
+      check:
+        - switch
+        - map
+  exclusions:
+    generated: lax
+    paths:
+      - internal/presentation/api/gen
+      - ".*/mock_.*"
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/kmatsui058/bookstore-ordering
+
+run:
+  timeout: 5m

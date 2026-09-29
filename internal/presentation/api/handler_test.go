@@ -65,32 +65,32 @@ func TestHandler_注文API(t *testing.T) {
 		wantValue  any
 	}{
 		{
-			name: "Given: 何もない, When: 正しい内容で POST /orders, Then: 201 で受付済みの注文が返る",
+			name:   "Given: 何もない, When: 正しい内容で POST /orders, Then: 201 で受付済みの注文が返る",
 			method: http.MethodPost, path: "/orders", body: validPlaceOrder,
 			wantStatus: http.StatusCreated, wantField: "status", wantValue: string(gen.OrderStatusPLACED),
 		},
 		{
-			name: "Given: 何もない, When: 注文明細が0件で POST /orders, Then: 400 になる",
+			name:   "Given: 何もない, When: 注文明細が0件で POST /orders, Then: 400 になる",
 			method: http.MethodPost, path: "/orders", body: `{"customerID":"customer-1","lines":[],"paymentMethod":"CREDIT_CARD"}`,
 			wantStatus: http.StatusBadRequest, wantField: "code", wantValue: "INVALID_ARGUMENT",
 		},
 		{
-			name: "Given: 何もない, When: 数量0の注文明細で POST /orders, Then: 400 になる",
+			name:   "Given: 何もない, When: 数量0の注文明細で POST /orders, Then: 400 になる",
 			method: http.MethodPost, path: "/orders", body: `{"customerID":"customer-1","lines":[{"bookID":"book-1","quantity":0,"unitPrice":100}],"paymentMethod":"CREDIT_CARD"}`,
 			wantStatus: http.StatusBadRequest, wantField: "code", wantValue: "INVALID_ARGUMENT",
 		},
 		{
-			name: "Given: 何もない, When: 定義にない支払方法で POST /orders, Then: 400 になる",
+			name:   "Given: 何もない, When: 定義にない支払方法で POST /orders, Then: 400 になる",
 			method: http.MethodPost, path: "/orders", body: `{"customerID":"customer-1","lines":[{"bookID":"book-1","quantity":1,"unitPrice":100}],"paymentMethod":"POINT"}`,
 			wantStatus: http.StatusBadRequest, wantField: "code", wantValue: "INVALID_ARGUMENT",
 		},
 		{
-			name: "Given: 受付済みの注文, When: GET /orders/{orderID}, Then: 200 で受付済みの注文が返る",
+			name:   "Given: 受付済みの注文, When: GET /orders/{orderID}, Then: 200 で受付済みの注文が返る",
 			method: http.MethodGet, path: "/orders/{orderID}",
 			wantStatus: http.StatusOK, wantField: "status", wantValue: string(gen.OrderStatusPLACED),
 		},
 		{
-			name: "Given: 受付済みの注文, When: キャンセルする, Then: 200 でキャンセルの注文が返る",
+			name:   "Given: 受付済みの注文, When: キャンセルする, Then: 200 でキャンセルの注文が返る",
 			method: http.MethodPost, path: "/orders/{orderID}/cancel",
 			wantStatus: http.StatusOK, wantField: "status", wantValue: string(gen.OrderStatusCANCELLED),
 		},
@@ -110,12 +110,12 @@ func TestHandler_注文API(t *testing.T) {
 			wantStatus: http.StatusConflict, wantField: "code", wantValue: "INVALID_STATE",
 		},
 		{
-			name: "Given: 受付済みの注文, When: 確定する, Then: 200 で確定の注文が返る",
+			name:   "Given: 受付済みの注文, When: 確定する, Then: 200 で確定の注文が返る",
 			method: http.MethodPost, path: "/orders/{orderID}/confirm",
 			wantStatus: http.StatusOK, wantField: "status", wantValue: string(gen.OrderStatusCONFIRMED),
 		},
 		{
-			name: "Given: 受付済みの注文, When: 出荷済みにする, Then: 409 になる",
+			name:   "Given: 受付済みの注文, When: 出荷済みにする, Then: 409 になる",
 			method: http.MethodPost, path: "/orders/{orderID}/ship",
 			wantStatus: http.StatusConflict, wantField: "code", wantValue: "INVALID_STATE",
 		},
@@ -125,17 +125,17 @@ func TestHandler_注文API(t *testing.T) {
 			wantStatus: http.StatusOK, wantField: "status", wantValue: string(gen.OrderStatusSHIPPED),
 		},
 		{
-			name: "Given: ない注文ID, When: キャンセルする, Then: 404 になる",
+			name:   "Given: ない注文ID, When: キャンセルする, Then: 404 になる",
 			method: http.MethodPost, path: "/orders/00000000-0000-0000-0000-000000000000/cancel",
 			wantStatus: http.StatusNotFound, wantField: "code", wantValue: "NOT_FOUND",
 		},
 		{
-			name: "Given: ない注文ID, When: GET /orders/{orderID}, Then: 404 になる",
+			name:   "Given: ない注文ID, When: GET /orders/{orderID}, Then: 404 になる",
 			method: http.MethodGet, path: "/orders/00000000-0000-0000-0000-000000000000",
 			wantStatus: http.StatusNotFound, wantField: "code", wantValue: "NOT_FOUND",
 		},
 		{
-			name: "Given: UUID ではない注文ID, When: GET /orders/{orderID}, Then: 400 になる",
+			name:   "Given: UUID ではない注文ID, When: GET /orders/{orderID}, Then: 400 になる",
 			method: http.MethodGet, path: "/orders/not-a-uuid",
 			wantStatus: http.StatusBadRequest, wantField: "code", wantValue: "INVALID_ARGUMENT",
 		},

@@ -63,12 +63,3 @@ func cancelledOrder(t *testing.T) *order.Aggregate {
 	require.NoError(t, a.Cancel(testCorrelationID, testNow))
 	return a
 }
-
-// eventTypes は、イベントの種類の列を返す。
-func eventTypes(events []order.Event) []order.EventType {
-	types := make([]order.EventType, 0, len(events))
-	for _, e := range events {
-		types = append(types, e.EventType())
-	}
-	return types
-}

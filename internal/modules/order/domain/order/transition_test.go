@@ -29,62 +29,62 @@ func TestAggregate_StateTransitions(t *testing.T) {
 		wantEventType order.EventType
 	}{
 		{
-			name: "Given: 受付済みの注文, When: 確定する, Then: 確定になり注文確定が発行される",
+			name:  "Given: 受付済みの注文, When: 確定する, Then: 確定になり注文確定が発行される",
 			given: placedOrder, when: confirm,
 			wantStatus: order.OrderStatusConfirmed, wantEventType: order.EventTypeOrderConfirmed,
 		},
 		{
-			name: "Given: 確定の注文, When: 確定する, Then: 確定できるのは受付済みだけというエラーになる",
+			name:  "Given: 確定の注文, When: 確定する, Then: 確定できるのは受付済みだけというエラーになる",
 			given: confirmedOrder, when: confirm,
 			wantErr: order.ErrNotConfirmable, wantStatus: order.OrderStatusConfirmed,
 		},
 		{
-			name: "Given: 出荷済みの注文, When: 確定する, Then: 確定できるのは受付済みだけというエラーになる",
+			name:  "Given: 出荷済みの注文, When: 確定する, Then: 確定できるのは受付済みだけというエラーになる",
 			given: shippedOrder, when: confirm,
 			wantErr: order.ErrNotConfirmable, wantStatus: order.OrderStatusShipped,
 		},
 		{
-			name: "Given: キャンセルの注文, When: 確定する, Then: 確定できるのは受付済みだけというエラーになる",
+			name:  "Given: キャンセルの注文, When: 確定する, Then: 確定できるのは受付済みだけというエラーになる",
 			given: cancelledOrder, when: confirm,
 			wantErr: order.ErrNotConfirmable, wantStatus: order.OrderStatusCancelled,
 		},
 		{
-			name: "Given: 受付済みの注文, When: キャンセルする, Then: キャンセルになり注文キャンセルが発行される",
+			name:  "Given: 受付済みの注文, When: キャンセルする, Then: キャンセルになり注文キャンセルが発行される",
 			given: placedOrder, when: cancel,
 			wantStatus: order.OrderStatusCancelled, wantEventType: order.EventTypeOrderCancelled,
 		},
 		{
-			name: "Given: 確定の注文, When: キャンセルする, Then: キャンセルになり注文キャンセルが発行される",
+			name:  "Given: 確定の注文, When: キャンセルする, Then: キャンセルになり注文キャンセルが発行される",
 			given: confirmedOrder, when: cancel,
 			wantStatus: order.OrderStatusCancelled, wantEventType: order.EventTypeOrderCancelled,
 		},
 		{
-			name: "Given: 出荷済みの注文, When: キャンセルする, Then: キャンセルできるのは出荷前だけというエラーになる",
+			name:  "Given: 出荷済みの注文, When: キャンセルする, Then: キャンセルできるのは出荷前だけというエラーになる",
 			given: shippedOrder, when: cancel,
 			wantErr: order.ErrNotCancellable, wantStatus: order.OrderStatusShipped,
 		},
 		{
-			name: "Given: キャンセルの注文, When: キャンセルする, Then: キャンセルできるのは出荷前だけというエラーになる",
+			name:  "Given: キャンセルの注文, When: キャンセルする, Then: キャンセルできるのは出荷前だけというエラーになる",
 			given: cancelledOrder, when: cancel,
 			wantErr: order.ErrNotCancellable, wantStatus: order.OrderStatusCancelled,
 		},
 		{
-			name: "Given: 確定の注文, When: 出荷済みにする, Then: 出荷済みになり注文出荷が発行される",
+			name:  "Given: 確定の注文, When: 出荷済みにする, Then: 出荷済みになり注文出荷が発行される",
 			given: confirmedOrder, when: markShipped,
 			wantStatus: order.OrderStatusShipped, wantEventType: order.EventTypeOrderShipped,
 		},
 		{
-			name: "Given: 受付済みの注文, When: 出荷済みにする, Then: 出荷済みにできるのは確定だけというエラーになる",
+			name:  "Given: 受付済みの注文, When: 出荷済みにする, Then: 出荷済みにできるのは確定だけというエラーになる",
 			given: placedOrder, when: markShipped,
 			wantErr: order.ErrNotShippable, wantStatus: order.OrderStatusPlaced,
 		},
 		{
-			name: "Given: 出荷済みの注文, When: 出荷済みにする, Then: 出荷済みにできるのは確定だけというエラーになる",
+			name:  "Given: 出荷済みの注文, When: 出荷済みにする, Then: 出荷済みにできるのは確定だけというエラーになる",
 			given: shippedOrder, when: markShipped,
 			wantErr: order.ErrNotShippable, wantStatus: order.OrderStatusShipped,
 		},
 		{
-			name: "Given: キャンセルの注文, When: 出荷済みにする, Then: 出荷済みにできるのは確定だけというエラーになる",
+			name:  "Given: キャンセルの注文, When: 出荷済みにする, Then: 出荷済みにできるのは確定だけというエラーになる",
 			given: cancelledOrder, when: markShipped,
 			wantErr: order.ErrNotShippable, wantStatus: order.OrderStatusCancelled,
 		},
