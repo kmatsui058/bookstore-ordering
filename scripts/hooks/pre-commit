@@ -1,0 +1,14 @@
+#!/bin/sh
+# コミットの前に整形・生成物・テストを確かめる任意のフック。
+# 使うときは git config core.hooksPath scripts/hooks を実行する
+set -eu
+
+unformatted=$(gofmt -l cmd internal)
+if [ -n "$unformatted" ]; then
+  echo "gofmt されていないファイルがあります。task fmt を実行してください:" >&2
+  echo "$unformatted" >&2
+  exit 1
+fi
+
+task check:generated
+task test
