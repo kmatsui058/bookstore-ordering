@@ -25,5 +25,5 @@
 - [x] 5.1 `task test` と `task lint` と `task check:generated` がすべて通ることを確かめる
 - [x] 5.2 code-reviewer サブエージェントでセルフレビューし、指摘への対応を決める
 - [x] 5.3 `task run` で起動し、curl で注文する → キャンセルする → もう一度キャンセルすると 409 になることを確かめる
-- [ ] 5.4 change を archive し、`openspec/specs/order-cancellation/spec.md` ができたことを確かめる
-- [ ] 5.5 `task sync:specs` で契約リポジトリの `docs/specs/` に同期し、サブモジュールの中でコミットしてから、このリポジトリでサブモジュールのポインタを更新する
+- [x] 5.4 change を archive し、`openspec/specs/order-cancellation/spec.md` ができたことを確かめる
+- [x] 5.5 `task sync:specs` で契約リポジトリの `docs/specs/` に同期し、サブモジュールの中でコミットしてから、このリポジトリでサブモジュールのポインタを更新する
