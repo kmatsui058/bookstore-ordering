@@ -65,22 +65,22 @@ func TestHandler_注文API(t *testing.T) {
 		wantValue  any
 	}{
 		{
-			name:   "Given: 何もない, When: 正しい内容で POST /orders, Then: 201 で受付済みの注文が返る",
+			name:   "Given: 正しい注文の内容, When: POST /orders, Then: 201 で受付済みの注文が返る",
 			method: http.MethodPost, path: "/orders", body: validPlaceOrder,
 			wantStatus: http.StatusCreated, wantField: "status", wantValue: string(gen.OrderStatusPLACED),
 		},
 		{
-			name:   "Given: 何もない, When: 注文明細が0件で POST /orders, Then: 400 になる",
+			name:   "Given: 注文明細が0件の内容, When: POST /orders, Then: 400 になる",
 			method: http.MethodPost, path: "/orders", body: `{"customerID":"customer-1","lines":[],"paymentMethod":"CREDIT_CARD"}`,
 			wantStatus: http.StatusBadRequest, wantField: "code", wantValue: "INVALID_ARGUMENT",
 		},
 		{
-			name:   "Given: 何もない, When: 数量0の注文明細で POST /orders, Then: 400 になる",
+			name:   "Given: 数量0の注文明細を含む内容, When: POST /orders, Then: 400 になる",
 			method: http.MethodPost, path: "/orders", body: `{"customerID":"customer-1","lines":[{"bookID":"book-1","quantity":0,"unitPrice":100}],"paymentMethod":"CREDIT_CARD"}`,
 			wantStatus: http.StatusBadRequest, wantField: "code", wantValue: "INVALID_ARGUMENT",
 		},
 		{
-			name:   "Given: 何もない, When: 定義にない支払方法で POST /orders, Then: 400 になる",
+			name:   "Given: 定義にない支払方法の内容, When: POST /orders, Then: 400 になる",
 			method: http.MethodPost, path: "/orders", body: `{"customerID":"customer-1","lines":[{"bookID":"book-1","quantity":1,"unitPrice":100}],"paymentMethod":"POINT"}`,
 			wantStatus: http.StatusBadRequest, wantField: "code", wantValue: "INVALID_ARGUMENT",
 		},

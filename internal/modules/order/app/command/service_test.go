@@ -3,6 +3,7 @@ package command_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -100,24 +101,6 @@ func TestService_CancelOrder(t *testing.T) {
 				return agg.ID()
 			},
 			wantErr: order.ErrNotCancellable,
-		},
-		{
-			name: "Given: ない注文ID, When: キャンセルする, Then: 注文が見つからないエラーになる",
-			setup: func(t *testing.T, m mocks) order.OrderID {
-				m.tx.EXPECT().FindByID(gomock.Any(), gomock.Any()).Return(nil, order.ErrNotFound)
-				return order.NewOrderID()
-			},
-			wantErr: order.ErrNotFound,
-		},
-		{
-			name: "Given: イベントの保存に失敗する, When: キャンセルする, Then: そのエラーになり、スナップショットの保存も公開もしない",
-			setup: func(t *testing.T, m mocks) order.OrderID {
-				agg := storedOrder(t)
-				m.tx.EXPECT().FindByID(gomock.Any(), agg.ID()).Return(agg, nil)
-				m.tx.EXPECT().SaveEvents(gomock.Any(), gomock.Any()).Return(errStore)
-				return agg.ID()
-			},
-			wantErr: errStore,
 		},
 	}
 	for _, tt := range tests {
@@ -232,5 +215,87 @@ func TestService_PlaceOrder(t *testing.T) {
 			assert.Equal(t, order.OrderStatusPlaced, got.Status())
 			assert.Equal(t, tt.input.CustomerID, got.CustomerID())
 		})
+	}
+}
+
+var errPublish = errors.New("イベントを公開できない")
+
+func TestService_既存の注文を変えるコマンドの共通の流れ(t *testing.T) {
+	commands := []struct {
+		name  string
+		given []func(a *order.Aggregate) error
+		when  func(s *command.Service, id order.OrderID) (*order.Aggregate, error)
+	}{
+		{name: "確定する", when: func(s *command.Service, id order.OrderID) (*order.Aggregate, error) {
+			return s.ConfirmOrder(context.Background(), id, testCorrelationID)
+		}},
+		{name: "キャンセルする", when: func(s *command.Service, id order.OrderID) (*order.Aggregate, error) {
+			return s.CancelOrder(context.Background(), id, testCorrelationID)
+		}},
+		{name: "出荷済みにする", given: []func(a *order.Aggregate) error{confirmed}, when: func(s *command.Service, id order.OrderID) (*order.Aggregate, error) {
+			return s.MarkOrderShipped(context.Background(), id, testCorrelationID)
+		}},
+	}
+	flows := []struct {
+		name    string
+		expect  func(m mocks, agg *order.Aggregate)
+		wantErr error
+	}{
+		{
+			name: "Given: コマンドを受け付けられる注文, When: %s, Then: イベント → スナップショット → 公開の順に行う",
+			expect: func(m mocks, agg *order.Aggregate) {
+				m.tx.EXPECT().FindByID(gomock.Any(), agg.ID()).Return(agg, nil)
+				gomock.InOrder(
+					m.tx.EXPECT().SaveEvents(gomock.Any(), gomock.Len(1)).Return(nil),
+					m.tx.EXPECT().SaveSnapshot(gomock.Any(), agg).Return(nil),
+					m.publisher.EXPECT().Publish(gomock.Any(), gomock.Len(1)).Return(nil),
+				)
+			},
+		},
+		{
+			name: "Given: ない注文ID, When: %s, Then: 注文が見つからないエラーになり、何も保存も公開もしない",
+			expect: func(m mocks, _ *order.Aggregate) {
+				m.tx.EXPECT().FindByID(gomock.Any(), gomock.Any()).Return(nil, order.ErrNotFound)
+			},
+			wantErr: order.ErrNotFound,
+		},
+		{
+			name: "Given: イベントの保存に失敗する, When: %s, Then: そのエラーになり、スナップショットの保存も公開もしない",
+			expect: func(m mocks, agg *order.Aggregate) {
+				m.tx.EXPECT().FindByID(gomock.Any(), agg.ID()).Return(agg, nil)
+				m.tx.EXPECT().SaveEvents(gomock.Any(), gomock.Any()).Return(errStore)
+			},
+			wantErr: errStore,
+		},
+		{
+			name: "Given: コミットのあとの公開に失敗する, When: %s, Then: 公開のエラーを返す",
+			expect: func(m mocks, agg *order.Aggregate) {
+				m.tx.EXPECT().FindByID(gomock.Any(), agg.ID()).Return(agg, nil)
+				m.tx.EXPECT().SaveEvents(gomock.Any(), gomock.Any()).Return(nil)
+				m.tx.EXPECT().SaveSnapshot(gomock.Any(), agg).Return(nil)
+				m.publisher.EXPECT().Publish(gomock.Any(), gomock.Any()).Return(errPublish)
+			},
+			wantErr: errPublish,
+		},
+	}
+	for _, c := range commands {
+		for _, f := range flows {
+			t.Run(fmt.Sprintf(f.name, c.name), func(t *testing.T) {
+				m := newMocks(t)
+				agg := storedOrder(t, c.given...)
+				f.expect(m, agg)
+				s := command.NewService(m.tm, m.publisher)
+
+				got, err := c.when(s, agg.ID())
+
+				if f.wantErr != nil {
+					require.ErrorIs(t, err, f.wantErr)
+					assert.Nil(t, got)
+					return
+				}
+				require.NoError(t, err)
+				assert.Equal(t, agg.ID(), got.ID())
+			})
+		}
 	}
 }
