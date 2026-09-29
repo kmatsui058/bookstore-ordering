@@ -19,16 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: false
-
-      # サブモジュール contracts（契約リポジトリ）は private なので、GITHUB_TOKEN では取得できない。
-      # 契約リポジトリに読み取り専用の deploy key を登録し、その秘密鍵をこのリポジトリの secret CONTRACTS_DEPLOY_KEY に入れておく
-      - uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.CONTRACTS_DEPLOY_KEY }}
-
-      - name: サブモジュールを取得する
-        run: git submodule update --init --recursive
+          submodules: recursive
 
       - uses: actions/setup-go@v5
         with:

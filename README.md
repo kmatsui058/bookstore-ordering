@@ -45,7 +45,7 @@ contracts/                          契約リポジトリ（サブモジュー�
 必要なもの: Go（`.go-version` の版）、[Task](https://taskfile.dev/)、Node.js（OpenSpec の CLI を使うとき）。
 
 ```sh
-git clone --recurse-submodules git@github.com:kmatsui058/bookstore-ordering.git
+git clone --recurse-submodules https://github.com/kmatsui058/bookstore-ordering.git
 cd bookstore-ordering
 
 task generate   # 契約の OpenAPI の定義からコードを、インターフェースからモックを生成する
