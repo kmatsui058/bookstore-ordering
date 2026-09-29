@@ -75,9 +75,9 @@ func (a *Aggregate) nextMetadata(correlationID event.CorrelationID, occurredAt t
 }
 
 // raise は、イベントを当てはめてバージョンを進め、イベントバスに発行する。
-func (a *Aggregate) raise(e Event) error {
+func (a *Aggregate) raise(e Event) {
 	a.applyEvent(e)
-	return a.bus.Publish(e)
+	a.bus.Publish(e)
 }
 
 // applyEvent は、イベントを当てはめてバージョンをイベントのバージョンに合わせる。

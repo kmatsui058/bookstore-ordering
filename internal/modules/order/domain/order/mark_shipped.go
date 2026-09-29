@@ -12,7 +12,8 @@ func (a *Aggregate) MarkShipped(correlationID event.CorrelationID, occurredAt ti
 	if a.status != OrderStatusConfirmed {
 		return ErrNotShippable
 	}
-	return a.raise(OrderShipped{
+	a.raise(OrderShipped{
 		orderEvent: orderEvent{orderID: a.orderID, metadata: a.nextMetadata(correlationID, occurredAt)},
 	})
+	return nil
 }

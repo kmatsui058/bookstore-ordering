@@ -12,10 +12,11 @@ func (a *Aggregate) Confirm(correlationID event.CorrelationID, occurredAt time.T
 	if a.status != OrderStatusPlaced {
 		return ErrNotConfirmable
 	}
-	return a.raise(OrderConfirmed{
+	a.raise(OrderConfirmed{
 		orderEvent:    orderEvent{orderID: a.orderID, metadata: a.nextMetadata(correlationID, occurredAt)},
 		customerID:    a.customerID,
 		paymentMethod: a.paymentMethod,
 		totalAmount:   a.TotalAmount(),
 	})
+	return nil
 }

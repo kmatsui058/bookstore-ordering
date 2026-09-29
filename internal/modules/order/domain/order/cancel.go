@@ -13,7 +13,8 @@ func (a *Aggregate) Cancel(correlationID event.CorrelationID, occurredAt time.Ti
 	if !a.status.isBeforeShipment() {
 		return ErrNotCancellable
 	}
-	return a.raise(OrderCancelled{
+	a.raise(OrderCancelled{
 		orderEvent: orderEvent{orderID: a.orderID, metadata: a.nextMetadata(correlationID, occurredAt)},
 	})
+	return nil
 }

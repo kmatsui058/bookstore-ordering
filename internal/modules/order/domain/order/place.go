@@ -39,8 +39,6 @@ func Place(
 		lines:         append([]OrderLine(nil), lines...),
 		paymentMethod: paymentMethod,
 	}
-	if err := a.raise(placed); err != nil {
-		return nil, err
-	}
+	a.raise(placed)
 	return a, nil
 }
