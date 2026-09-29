@@ -1,0 +1,56 @@
+schema: spec-driven
+
+context: |
+  Language: ja
+  All artifacts must be written in ja.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  このリポジトリは、書店の注文コンテキスト（契約リポジトリのモデルの bks.bkst.ordr）を実装するサービス。
+  ガイドライン・ドメインモデル・API の定義の正本は、サブモジュール contracts（契約リポジトリ）にある。
+
+  仕様書作成ガイドライン:
+  - contracts/docs/guides/requirements-specs-management/README.md（全体の流れと、確定した仕様の同期）
+  - contracts/docs/guides/documentation.md（Markdown とリンクの書き方）
+
+  ユビキタス言語:
+  - 語の正本は LikeC4 のモデル contracts/docs/domain/**/*.c4。注文コンテキストの語は contracts/docs/domain/bookstore/ordering/ にある
+  - 書き方は contracts/docs/guides/domain-modeling.md に従う
+  - アーティファクトでは、モデルの和名（title）をそのまま使う。モデルにない語を使わない
+  - 新しい語や語の意味の変更が要るときは、先に契約リポジトリのモデルを変える change を人間に提案する。モデルを変えるかどうかは人間が決める
+
+  CLI の優先:
+  - openspec CLI でできることは CLI で行う（`openspec --help` で確かめる）。できないときだけファイルを直接操作する
+
+  リンクの書き方:
+  - 確定した仕様と archive した change は `task sync:specs` で contracts/docs/specs/ の下にコピーされ、ファイル間の相対パスが変わる
+  - そのため、契約リポジトリのドキュメントへは contracts/docs/ をルートとした `/` 始まりの絶対パスで書く（例: /guides/domain-modeling.md）
+  - LikeC4 のビューはリンクにせず、ビュー ID をコード表記で書く（例: `bkst_ordr_ordm_ord_state`）。同期先の深さによって相対パスが変わるため
+
+  アーティファクトを作る順:
+  - proposal → specs → design → tasks。specs で「何を満たすか」を決めてから、design で「どう実現するか」を書く
+
+rules:
+  proposal:
+    - "ガイドライン: contracts/docs/guides/requirements-specs-management/proposal.md"
+    - "change 名と Capability 名は、注文コンテキストの接頭辞 order- を付けたケバブケースにする（例: order-cancellation）。sync:specs はこの接頭辞で同期する対象を選ぶ"
+    - |
+      読者と表現:
+      - proposal はドメインエキスパート（エンジニアではない人）も読む
+      - モデルの語を使い、実装の手段ではなく、業務上の目的・課題・変えることを平易に書く
+      - 分かりやすくなるなら mermaid の図（流れ・状態の遷移）を添える
+  specs:
+    - "ガイドライン: contracts/docs/guides/requirements-specs-management/delta-specs.md"
+    - "Capability 名には接頭辞 order- を付ける"
+    - |
+      読者と表現:
+      - specs はドメインエキスパートも読む。シナリオは業務の言葉で Given/When/Then に書く
+      - API のパスやステータスコード、コードの名前は書かない（design に書く）
+      - 状態や遷移の条件は、モデルのステートマシン（`bkst_ordr_ordm_ord_state`）と食い違わないようにする
+  design:
+    - "ガイドライン: contracts/docs/guides/requirements-specs-management/design.md"
+    - "決めたことは D1, D2 … と番号を付け、それぞれに理由と、検討してやめた案を書く"
+    - "番号はこの change の中だけの識別子なので、コードのコメントに書かない（archive したあと辿れなくなる）"
+  tasks:
+    - "ガイドライン: contracts/docs/guides/requirements-specs-management/tasks.md"
+    - "実装のタスクは TDD の順（失敗するテストを書く → 通す最小の実装 → リファクタリング）に並べる"
+    - "最後に、セルフレビュー・動作確認・archive・`task sync:specs` と契約リポジトリへのコミットのタスクを置く"

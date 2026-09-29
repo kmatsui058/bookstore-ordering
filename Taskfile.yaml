@@ -1,0 +1,75 @@
+version: '3'
+
+vars:
+  GOLANGCI_LINT: go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
+  # 確定した仕様の同期先。契約リポジトリの docs/specs/<業務ドメイン>/<コンテキスト>/ の下に、このリポジトリの名前で置く
+  SPECS_DEST: contracts/docs/specs/bookstore/ordering
+
+tasks:
+  generate:
+    desc: "契約の OpenAPI の定義からサーバーのコードを、インターフェースからモックを生成する"
+    sources:
+      - contracts/ordering/definitions/openapi/openapi.yaml
+      - configs/oapi-codegen.yaml
+      - internal/**/interfaces.go
+    cmds:
+      - go generate ./...
+
+  check:generated:
+    desc: "生成し直して、コミットした生成物と差分がないことを確かめる"
+    cmds:
+      - go generate ./...
+      - git diff --exit-code -- internal
+      - test -z "$(git status --porcelain -- internal)" || (git status --porcelain -- internal; echo "コミットしていない生成物があります" >&2; exit 1)
+
+  test:
+    desc: "すべてのテストを実行する"
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: "golangci-lint で検査する"
+    cmds:
+      - "{{.GOLANGCI_LINT}} run ./..."
+
+  fmt:
+    desc: "gofmt・goimports で整形する"
+    cmds:
+      - "{{.GOLANGCI_LINT}} fmt ./..."
+
+  build:
+    desc: "サーバーをビルドする"
+    cmds:
+      - go build -o bin/server ./cmd/server
+
+  run:
+    desc: "注文 API のサーバーを起動する（既定は :8080。ADDR で変えられる）"
+    cmds:
+      - go run ./cmd/server
+
+  specs:validate:
+    desc: "OpenSpec の仕様と change を検査する"
+    cmds:
+      - npx --yes @fission-ai/openspec@1.13.2 validate --all --strict
+
+  sync:specs:
+    desc: "確定した仕様（openspec/specs/order-*）と archive した change を契約リポジトリの docs/specs/ に同期する"
+    cmds:
+      - task: sync:specs:descriptions
+      - task: sync:specs:proposals
+
+  sync:specs:descriptions:
+    internal: true
+    vars:
+      DEST: "{{.SPECS_DEST}}/descriptions/bookstore-ordering"
+    cmds:
+      - rm -rf {{.DEST}} && mkdir -p {{.DEST}}
+      - for d in openspec/specs/order-*/; do [ -d "$d" ] && cp -R "$d" {{.DEST}}/; done; true
+
+  sync:specs:proposals:
+    internal: true
+    vars:
+      DEST: "{{.SPECS_DEST}}/proposals/bookstore-ordering"
+    cmds:
+      - rm -rf {{.DEST}} && mkdir -p {{.DEST}}
+      - for d in openspec/changes/archive/*-order-*/; do [ -d "$d" ] && cp -R "$d" {{.DEST}}/; done; true

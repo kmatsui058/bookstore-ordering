@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: 生成物の確認・lint・テスト・ビルド
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: .go-version
+          cache: true
+
+      - uses: go-task/setup-task@v1
+        with:
+          version: 3.x
+
+      - name: 生成し直して、コミットした生成物と差分がないことを確かめる
+        run: task check:generated
+
+      - name: lint
+        run: task lint
+
+      - name: テスト
+        run: task test
+
+      - name: ビルド
+        run: task build
+
+  specs:
+    name: OpenSpec の検査
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: go-task/setup-task@v1
+        with:
+          version: 3.x
+      - run: task specs:validate
